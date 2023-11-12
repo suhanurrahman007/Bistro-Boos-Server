@@ -29,6 +29,7 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         const menuCollection = client.db("menuDB").collection("menu")
+        const reviewCollection = client.db("menuDB").collection("review")
 
 
 
@@ -37,6 +38,10 @@ async function run() {
             res.send(result)
         })
 
+        app.get("/review", async (req, res) => {
+            const result = await reviewCollection.find().toArray()
+            res.send(result)
+        })
 
 
 
