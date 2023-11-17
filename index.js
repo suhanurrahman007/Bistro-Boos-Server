@@ -37,7 +37,30 @@ async function run() {
         const userCollection = client.db("menuDB").collection("user")
 
 
+        app.post("/jwt", async(req, res) =>{
+            const user = req.body
+            const token = jwt.sign(user, process.env.DB_BISTRO_BOSS_TOKEN, {expiresIn: '1h'})
+            res.send({token})
+        })
 
+
+        const verifyToken = (req, res, next)=>{
+            console.log("inside Verify token", req.headers.authorization);
+            if (!req.headers.authorization) {
+                return res.status(401).send({message : "forbidden access"})
+            }
+            const token = req.headers.authorization.split(" ")[1]
+
+            jwt.verify(token, process.env.DB_BISTRO_BOSS_TOKEN, (err, decoded) =>{
+                if (err) {
+                    return res.status(401).send({
+                        message: "forbidden access"
+                    })
+                }
+                req.decoded = decoded
+                next()
+            })
+        }
 
 
         app.get("/menu", async(req, res) =>{
@@ -57,7 +80,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get("/user", async (req, res) =>{
+        app.get("/user",verifyToken, async (req, res) =>{
             const result = await userCollection.find().toArray()
             res.send(result)
         })
