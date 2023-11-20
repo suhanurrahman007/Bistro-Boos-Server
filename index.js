@@ -36,6 +36,8 @@ async function run() {
         const reviewCollection = client.db("menuDB").collection("review")
         const cartCollection = client.db("menuDB").collection("cart")
         const userCollection = client.db("menuDB").collection("user")
+        const paymentCollection = client.db("menuDB").collection("payment")
+
 
 
         app.post("/jwt", async (req, res) => {
@@ -127,6 +129,19 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret
             })
+        })
+
+        app.post("/payment", async (req, res)=>{
+            const payment = req.body
+            // console.log(payment);
+            const paymentResult = await paymentCollection.insertOne(payment)
+            const query = {_id :{
+                $in: payment.cartIds.map(id => new ObjectId(id))
+            }}
+            const deleteResult = await cartCollection.deleteMany(query)
+
+            res.send({paymentResult, deleteResult})
+
         })
 
         app.get("/user", verifyToken, verifyAdmin, async (req, res) => {
